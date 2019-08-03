@@ -21,13 +21,18 @@ wget \
   wget \
   -O "emp-paired-end-sequences/barcodes.fastq.gz" \
   "https://data.qiime2.org/2019.4/tutorials/atacama-soils/1p/barcodes.fastq.gz"
-  
+ --------------------------------------------------------------------------------------------------------------
+ #activate qiime2
+ conda activate qiime2-2019.4 
+----------------------------------------------------------------------------------------------- 
+ 
  #import data
  qiime tools import \
    --type EMPPairedEndSequences \
    --input-path emp-paired-end-sequences \
    --output-path emp-paired-end-sequences.qza
- 
+   
+-------------------------------------------------------------------------------------------- 
  #demultiplexing
    qiime demux emp-paired \
   --m-barcodes-file sample-metadata.tsv \
@@ -40,7 +45,9 @@ wget \
 qiime demux summarize \
   --i-data demux.qza \
   --o-visualization demux.qzv
-#  
+  
+# sequence quality control
+
  qiime dada2 denoise-paired \
   --i-demultiplexed-seqs demux.qza \
   --p-trim-left-f 13 \
@@ -50,7 +57,8 @@ qiime demux summarize \
   --o-table table.qza \
   --o-representative-sequences rep-seqs.qza \
   --o-denoising-stats denoising-stats.qza 
-#
+  --------------------------------------------------------------------------------------
+#feature table and data summaries
   qiime feature-table summarize \
   --i-table table.qza \
   --o-visualization table.qzv \
@@ -63,5 +71,70 @@ qiime feature-table tabulate-seqs \
   qiime metadata tabulate \
   --m-input-file denoising-stats.qza \
   --o-visualization denoising-stats.qzv
+-------------------------------------------------------------------------------------  
+  #phylogenetic diversity analysis
+
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --i-sequences rep-seqs.qza \
+  --o-alignment aligned-rep-seqs.qza \
+  --o-masked-alignment masked-aligned-rep-seqs.qza \
+  --o-tree unrooted-tree.qza \
+  --o-rooted-tree rooted-tree.qza
   
+ -------------------------------------------------------------------------------------  
+   # Alpha Rarefaction
+   
+  qiime diversity alpha-rarefaction \
+  --i-table table.qza \
+  --i-phylogeny rooted-tree.qza \
+  --p-max-depth 262 \
+  --m-metadata-file sample-metadata.tsv \
+  --o-visualization alpha-rarefaction.qzv
   
+  ---------------------------------------------------------------------------------------
+  #Alpha and Beta diversity 
+  
+  qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny rooted-tree.qza \
+  --i-table table.qza \
+  --p-sampling-depth 260 \
+  --m-metadata-file sample-metadata.tsv \
+  --output-dir core-metrics-results
+  
+  qiime diversity alpha-group-significance \
+  --i-alpha-diversity core-metrics-results/faith_pd_vector.qza \
+  --m-metadata-file sample-metadata.tsv \
+  --o-visualization core-metrics-results/faith-pd-group-significance.qzv
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity core-metrics-results/evenness_vector.qza \
+  --m-metadata-file sample-metadata.tsv \
+  --o-visualization core-metrics-results/evenness-group-significance.qzv
+  
+  ---------------------------------------------------------------------------------------------------------------------
+  
+ #Taxonomic analysis 
+ 
+ wget \
+  -O "gg-13-8-99-515-806-nb-classifier.qza" \
+  "https://data.qiime2.org/2019.7/common/gg-13-8-99-515-806-nb-classifier.qza"
+ 
+ qiime feature-classifier classify-sklearn \
+  --i-classifier gg-13-8-99-515-806-nb-classifier.qza \
+  --i-reads rep-seqs.qza \
+  --o-classification taxonomy.qza
+
+qiime metadata tabulate \
+  --m-input-file taxonomy.qza \
+  --o-visualization taxonomy.qzv
+  
+  #Taxa bar plot
+  
+  qiime taxa barplot \
+  --i-table table.qza \
+  --i-taxonomy taxonomy.qza \
+  --m-metadata-file sample-metadata.tsv \
+  --o-visualization taxa-bar-plots.qzv
+  
+
+
