@@ -46,6 +46,8 @@ qiime demux summarize \
   --i-data demux.qza \
   --o-visualization demux.qzv
   
+  -------------------------------------------------------------------------------------------------------------
+  
 # sequence quality control
 
  qiime dada2 denoise-paired \
@@ -57,9 +59,11 @@ qiime demux summarize \
   --o-table table.qza \
   --o-representative-sequences rep-seqs.qza \
   --o-denoising-stats denoising-stats.qza 
-  --------------------------------------------------------------------------------------
+  -----------------------------------------------------------------------------------------------------------------------------
+
 #feature table and data summaries
-  qiime feature-table summarize \
+
+qiime feature-table summarize \
   --i-table table.qza \
   --o-visualization table.qzv \
   --m-sample-metadata-file sample-metadata.tsv
@@ -71,7 +75,8 @@ qiime feature-table tabulate-seqs \
   qiime metadata tabulate \
   --m-input-file denoising-stats.qza \
   --o-visualization denoising-stats.qzv
--------------------------------------------------------------------------------------  
+  
+------------------------------------------------------------------------------------------------------------------------------  
   #phylogenetic diversity analysis
 
 qiime phylogeny align-to-tree-mafft-fasttree \
@@ -91,7 +96,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
   --m-metadata-file sample-metadata.tsv \
   --o-visualization alpha-rarefaction.qzv
   
-  ---------------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------------------------------------------------
   #Alpha and Beta diversity 
   
   qiime diversity core-metrics-phylogenetic \
@@ -111,7 +116,7 @@ qiime diversity alpha-group-significance \
   --m-metadata-file sample-metadata.tsv \
   --o-visualization core-metrics-results/evenness-group-significance.qzv
   
-  ---------------------------------------------------------------------------------------------------------------------
+  ---------------------------------------------------------------------------------------------------------------------------------------------
   
  #Taxonomic analysis 
  
@@ -136,5 +141,38 @@ qiime metadata tabulate \
   --m-metadata-file sample-metadata.tsv \
   --o-visualization taxa-bar-plots.qzv
   
+#for heat map
+
+qiime gneiss correlation-clustering \
+   --i-table table.qza \
+   --o-clustering hierarchy.qza
+   
+   qiime gneiss dendrogram-heatmap \
+  --i-table table.qza \
+  --i-tree hierarchy.qza \
+  --m-metadata-file sample-metadata.tsv \
+  --m-metadata-column ExtractGroupNo \
+  --p-color-map seismic \
+  --o-visualization heatmap.qzv
+  
+  ------------------------------------------------------------------------------------------------------------------------------------------
+  
+  # regression summary
+  
+  qiime gneiss ilr-hierarchical \
+  --i-table table.qza \
+  --i-tree hierarchy.qza \
+  --o-balances balances.qza
+
+
+
+qiime gneiss ols-regression \
+  --p-formula "Elevation+Depth+pH" \
+  --i-table balances.qza \
+  --i-tree hierarchy.qza \
+  --m-metadata-file sample-metadata.tsv \
+  --o-visualization regression_summary.qzv
+
+
 
 
