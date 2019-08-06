@@ -1,7 +1,7 @@
 #go to your desired folder/directory where you want to carry out this project
 #folder creation
-mkdir qiime2-atacama-tutorial
-cd qiime2-atacama-tutorial
+mkdir qiime2-atacama-soil
+cd qiime2-atacama-soil
 
 #downloading metadata
 wget \
